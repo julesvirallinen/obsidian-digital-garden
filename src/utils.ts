@@ -97,4 +97,4 @@ function fixSvgForXmlSerializer(svgElement: SVGSVGElement): void{
 
 
 
-export { arrayBufferToBase64, extractBaseUrl, generateUrlPath, generateBlobHash, kebabize, wrapAround, getRewriteRules, getGardenPathForNote, escapeRegExp};
+export { arrayBufferToBase64, extractBaseUrl, generateUrlPath, generateBlobHash, kebabize, wrapAround, getRewriteRules, getGardenPathForNote, escapeRegExp, fixSvgForXmlSerializer };
