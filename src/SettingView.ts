@@ -2,7 +2,7 @@ import DigitalGardenSettings from './DigitalGardenSettings';
 import { ButtonComponent, Modal, Notice, Setting, App, TFile, debounce, MetadataCache, getIcon } from 'obsidian';
 import axios from "axios";
 import { Octokit } from '@octokit/core';
-import { arrayBufferToBase64 } from './utils';
+import { arrayBufferToBase64, getGardenPathForNote, getRewriteRules } from './utils';
 import DigitalGardenSiteManager from './DigitalGardenSiteManager';
 import { SvgFileSuggest } from './ui/file-suggest';
 import { addFilterInput } from './ui/addFilterInput';
