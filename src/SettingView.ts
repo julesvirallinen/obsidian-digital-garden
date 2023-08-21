@@ -39,7 +39,7 @@ export default class SettingView {
 
         this.settingsRootElement.createEl('h3', { text: 'URL' }).prepend(getIcon("link"));
         this.initializeGitHubBaseURLSetting();
-		this.initializeSlugifySetting();
+        this.initializeSlugifySetting();
 
         this.settingsRootElement.createEl('h3', { text: 'Features' }).prepend(getIcon("star"));
         this.initializeDefaultNoteSettings();
@@ -619,13 +619,19 @@ export default class SettingView {
             })
 
         const rewritesettingContainer = rewriteRulesModal.contentEl.createEl('div', { attr: { class: "", style: "align-items:flex-start; flex-direction: column;" } });
+
 		rewritesettingContainer.createEl('div', {text: `Define rules to rewrite note paths/folder structure, using following syntax:`})
+
         const list = rewritesettingContainer.createEl('ol');
         list.createEl("li", {text: `One rule-per line`})
         list.createEl("li", {text: `The format is [from_vault_path]:[to_garden_path]`})
         list.createEl("li", {text: `Matching will exit on first match`});
         rewritesettingContainer.createEl("div", {text: `Example: If you want the vault folder "Personal/Journal" to be shown as only "Journal" in the left file sidebar in the garden, add the line "Personal/Journal:Journal"`, attr: { class: "setting-item-description" }})
+		rewritesettingContainer.createEl("div", { text: `Note: rewriting a folder to the base path "[from_vault_path]:" is not supported at the moment.`, attr: { class: "setting-item-description" } })
         rewritesettingContainer.createEl("div", {text: `Any affected notes will show up as changed in the publication center`, attr: { class: "setting-item-description" }})
+
+
+
         new Setting(rewritesettingContainer)
             .setName('Rules')
 			.addTextArea(field => {
@@ -635,10 +641,28 @@ export default class SettingView {
 				field.setValue(this.settings.pathRewriteRules)
                     .onChange(async (value) => {
                         this.settings.pathRewriteRules = value;
-                        await this.saveSettings();
+						await this.saveSettings()
+
                     })
 			}
-            );
+		);	
+
+		rewritesettingContainer.createEl("div", { text: `Type a path below to test that your rules are working as expected`, attr: { class: "test-rewrite-rules-description" } })
+
+		const rewriteSettingsPreviewContainer = rewritesettingContainer.createEl('div', { attr: { style: 'display: flex; align-items: center; margin-top: 10px;' } });
+
+		const previewInput = rewriteSettingsPreviewContainer.createEl('input', { attr: { type: 'text', placeholder: 'type a vault path', style: 'margin-right: 10px;' } });
+
+		previewInput.addEventListener('input', () => {
+			const testPath = previewInput.value;
+			const rewriteTestResult = getGardenPathForNote(testPath, getRewriteRules(this.settings.pathRewriteRules));
+			testResultDiv.innerHTML = `Garden path: "${rewriteTestResult}"`;
+		});
+
+		const testResultDiv = rewriteSettingsPreviewContainer.createEl("div", { text: `Garden path: ""`, attr: { class: "test-rewrite-rules-new-path" } });
+
+
+
     }
 
     private initializeCustomFilterSettings() {
