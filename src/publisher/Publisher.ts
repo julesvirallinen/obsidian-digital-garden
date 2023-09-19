@@ -219,6 +219,9 @@ export default class Publisher {
 		}
 
 		let text = await this.vault.cachedRead(file);
+		console.log(text);
+		text = this.createVideoEmbeds(text);
+		console.log(text);
 		text = await this.convertCustomFilters(text);
 		text = await this.convertFrontMatter(text, file);
 		text = await this.createBlockIDs(text);
@@ -1004,6 +1007,28 @@ export default class Publisher {
 		}
 
 		return transcludedText;
+	}
+
+	createVideoEmbeds(text: string): string {
+		// video format : ![](ANY YOUTUBE LINK)
+		// target format: @[youtube](ANY YOUTUBE LINK)
+		const videoRegex = /!\[\]\((.*youtube\.com.*)\)/g;
+
+		const videoMatches = text.match(videoRegex);
+
+		if (!videoMatches) {
+			return text;
+		}
+
+		for (const videoMatch of videoMatches) {
+			const videoUrl = videoMatch.substring(
+				videoMatch.indexOf("(") + 1,
+				videoMatch.indexOf(")"),
+			);
+			const videoEmbed = `@[youtube](${videoUrl})`;
+			text = text.replace(videoMatch, videoEmbed);
+		}
+		return text;
 	}
 
 	async createSvgEmbeds(text: string, filePath: string): Promise<string> {
