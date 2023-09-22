@@ -8,7 +8,7 @@ import PublishStatusManager from "src/publisher/PublishStatusManager";
 import ObsidianFrontMatterEngine from "src/publisher/ObsidianFrontMatterEngine";
 import DigitalGardenSiteManager from "src/publisher/DigitalGardenSiteManager";
 import { DigitalGardenSettingTab } from "./src/ui/DigitalGardenSettingTab";
-import { FRONTMATTER_KEYS } from "./src/models/frontMatter";
+import { DG_KEY } from "./src/utils/frontMatterUtils";
 
 const DEFAULT_SETTINGS: DigitalGardenSettings = {
 	githubRepo: "",
@@ -364,7 +364,7 @@ export default class DigitalGarden extends Plugin {
 			this.app.metadataCache,
 			activeFile,
 		);
-		engine.set(FRONTMATTER_KEYS.PUBLISH, value).apply();
+		engine.set(DG_KEY.PUBLISH, value).apply();
 	}
 	async togglePublishFlag() {
 		const activeFile = this.getActiveFile(this.app.workspace);
@@ -378,12 +378,7 @@ export default class DigitalGarden extends Plugin {
 			this.app.metadataCache,
 			activeFile,
 		);
-		engine
-			.set(
-				FRONTMATTER_KEYS.PUBLISH,
-				!engine.get(FRONTMATTER_KEYS.PUBLISH),
-			)
-			.apply();
+		engine.set(DG_KEY.PUBLISH, !engine.get(DG_KEY.PUBLISH)).apply();
 	}
 
 	openPublishModal() {

@@ -9,6 +9,7 @@ import {
 import { Octokit } from "@octokit/core";
 import { Base64 } from "js-base64";
 import type DigitalGardenPluginInfo from "../models/pluginInfo";
+import { getIsHome, getPermalink } from "../utils/frontMatterUtils";
 
 export interface PathRewriteRule {
 	from: string;
@@ -121,12 +122,12 @@ export default class DigitalGardenSiteManager {
 
 		const frontMatter = this.metadataCache.getCache(file.path)?.frontmatter;
 
-		if (frontMatter && frontMatter["dg-home"] === true) {
+		if (getIsHome(frontMatter)) {
 			urlPath = "/";
 		} else if (frontMatter?.permalink) {
 			urlPath = `/${frontMatter.permalink}`;
-		} else if (frontMatter?.["dg-permalink"]) {
-			urlPath = `/${frontMatter["dg-permalink"]}`;
+		} else if (getPermalink(frontMatter)) {
+			urlPath = `/${getPermalink(frontMatter)}`;
 		}
 
 		return `${baseUrl}${urlPath}`;

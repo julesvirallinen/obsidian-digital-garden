@@ -27,6 +27,14 @@ import slugify from "@sindresorhus/slugify";
 import { PathRewriteRules } from "./DigitalGardenSiteManager";
 import DigitalGardenSettings from "../models/settings";
 import { fixMarkdownHeaderSyntax } from "../utils/markdown";
+import {
+	DG_KEY,
+	TFrontmatter,
+	TPublishedFrontMatter,
+	getGardenFrontMatterKey,
+	getIsHome,
+	getIsPublished,
+} from "../utils/frontMatterUtils";
 
 export interface MarkedForPublishing {
 	notes: TFile[];
@@ -40,25 +48,6 @@ export interface Asset {
 export interface Assets {
 	images: Array<Asset>;
 }
-
-export type TFrontmatter = Record<string, unknown> & {
-	"dg-path"?: string;
-	"dg-permalink"?: string;
-	"dg-home"?: boolean;
-	"dg-hide-in-graph"?: boolean;
-	"dg-hide"?: boolean;
-	"dg-pinned"?: boolean;
-	"dg-metatags"?: string;
-	tags?: string;
-};
-
-export type TPublishedFrontMatter = Record<string, unknown> & {
-	tags?: string[];
-	metatags?: string;
-	pinned?: boolean;
-	permalink?: string;
-	hide?: boolean;
-};
 
 export interface IPublisher {
 	[x: string]: unknown;
@@ -78,7 +67,6 @@ export default class Publisher {
 	rewriteRules: PathRewriteRules;
 	frontmatterRegex = /^\s*?---\n([\s\S]*?)\n---/g;
 	blockrefRegex = /(\^\w+(\n|$))/g;
-
 	codeFenceRegex = /`(.*?)`/g;
 	codeBlockRegex = /```.*?\n[\s\S]+?```/g;
 	excaliDrawRegex = /:\[\[(\d*?,\d*?)\],.*?\]\]/g;
@@ -102,7 +90,7 @@ export default class Publisher {
 			try {
 				const frontMatter = this.metadataCache.getCache(file.path)
 					?.frontmatter;
-				if (frontMatter && frontMatter["dg-publish"] === true) {
+				if (getIsPublished(frontMatter)) {
 					notesToPublish.push(file);
 					const images = await this.extractImageLinks(
 						await this.vault.cachedRead(file),
@@ -516,7 +504,7 @@ export default class Publisher {
 		delete fileFrontMatter["position"];
 
 		let publishedFrontMatter: TPublishedFrontMatter = {
-			"dg-publish": true,
+			[DG_KEY.PUBLISH]: true,
 		};
 
 		publishedFrontMatter = this.addPermalink(
@@ -566,27 +554,22 @@ export default class Publisher {
 		// Eventually we will add other pass-throughs here. e.g. tags.
 		const publishedFrontMatter = { ...newFrontMatter };
 
-		if (baseFrontMatter) {
-			if (baseFrontMatter["title"]) {
-				publishedFrontMatter["title"] = baseFrontMatter["title"];
-			}
+		if (!baseFrontMatter) {
+			return publishedFrontMatter;
+		}
 
-			if (baseFrontMatter["dg-metatags"]) {
-				publishedFrontMatter["metatags"] =
-					baseFrontMatter["dg-metatags"];
-			}
+		const keysToPassThrough = [
+			DG_KEY.TITLE,
+			DG_KEY.METATAGS,
+			DG_KEY.HIDE,
+			DG_KEY.HIDE_IN_GRAPH,
+			DG_KEY.PINNED,
+		];
 
-			if (baseFrontMatter["dg-hide"]) {
-				publishedFrontMatter["hide"] = baseFrontMatter["dg-hide"];
-			}
-
-			if (baseFrontMatter["dg-hide-in-graph"]) {
-				publishedFrontMatter["hideInGraph"] =
-					baseFrontMatter["dg-hide-in-graph"];
-			}
-
-			if (baseFrontMatter["dg-pinned"]) {
-				publishedFrontMatter["pinned"] = baseFrontMatter["dg-pinned"];
+		for (const key of keysToPassThrough) {
+			const gardenKey = getGardenFrontMatterKey(key);
+			if (gardenKey) {
+				publishedFrontMatter[getGardenFrontMatterKey(key)] = gardenKey;
 			}
 		}
 
@@ -634,7 +617,7 @@ export default class Publisher {
 					? fileFrontMatter["tags"].split(/,\s*/)
 					: fileFrontMatter["tags"]) || [];
 
-			if (fileFrontMatter["dg-home"]) {
+			if (getIsHome(fileFrontMatter)) {
 				tags.push("gardenEntry");
 			}
 
