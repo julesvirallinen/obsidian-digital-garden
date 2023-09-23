@@ -387,7 +387,7 @@ export default class Publisher {
 
 	async convertDataViews(text: string, path: string): Promise<string> {
 		let replacedText = text;
-		const dataViewRegex = /```dataview\s(.+?)```/gms;
+		const dataViewRegex = /```datview\s(.+?)```/gms;
 		const dvApi = getAPI();
 		if (!dvApi) return replacedText;
 		const matches = text.matchAll(dataViewRegex);

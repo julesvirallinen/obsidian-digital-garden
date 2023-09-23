@@ -48,10 +48,10 @@ This subfolder also contains path rewrite testing!
 
 I'm a list of all files in this folder: 
 
-- [[P Plugins/PD Dataview/PD1 Dataview\|PD1 Dataview]]
-- [[P Plugins/PE Excalidraw/PE1 Embedded excalidraw\|PE1 Embedded excalidraw]]
-
-{ .block-language-dataview}
+```dataview
+list 
+from "P Plugins"
+```
 
 ---
 {"dg-publish":true,"permalink":"/008-pinned-note/","pinned":true}
