@@ -21,11 +21,11 @@ export const generateGardenSnapshot = async (
 	let fileString = "---\n";
 
 	const notesSortedByCreationDate = marked.notes.sort(
-		(note) => note.stat.ctime,
+		(note) => note.file.stat.ctime,
 	);
 
 	for (const file of notesSortedByCreationDate) {
-		const [content, _] = await publisher.compiler.generateMarkdown(file);
+		const [content, _] = await (await file.compile()).getCompiledFile();
 		// TODO: add assets
 
 		fileString += `${content}\n`;
