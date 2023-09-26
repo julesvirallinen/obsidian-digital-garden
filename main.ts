@@ -11,6 +11,7 @@ import { DigitalGardenSettingTab } from "./src/ui/DigitalGardenSettingTab";
 import { generateGardenSnapshot } from "./src/test/snapshot/generateGardenSnapshot";
 import { FRONTMATTER_KEYS } from "./src/models/frontMatter";
 import dotenv from "dotenv";
+import { PublishFile } from "./src/publisher/PublishFile";
 dotenv.config();
 
 const DEFAULT_SETTINGS: DigitalGardenSettings = {
@@ -159,6 +160,7 @@ export default class DigitalGarden extends Plugin {
 		this.addCommand({
 			id: "publish-multiple-notes",
 			name: "Publish Multiple Notes",
+			// TODO: move to publisher?
 			callback: async () => {
 				const statusBarItem = this.addStatusBarItem();
 
@@ -215,7 +217,7 @@ export default class DigitalGarden extends Plugin {
 							errorFiles++;
 
 							new Notice(
-								`Unable to publish note ${file.name}, skipping it.`,
+								`Unable to publish note ${file.file.name}, skipping it.`,
 							);
 						}
 					}
@@ -362,6 +364,7 @@ export default class DigitalGarden extends Plugin {
 		}
 	}
 
+	// TODO: move to publisher?
 	async publishSingleNote() {
 		try {
 			const { vault, workspace, metadataCache } = this.app;
@@ -387,7 +390,16 @@ export default class DigitalGarden extends Plugin {
 				metadataCache,
 				this.settings,
 			);
-			const publishSuccessful = await publisher.publish(activeFile);
+
+			const publishFile = await new PublishFile({
+				file: activeFile,
+				vault: vault,
+				compiler: publisher.compiler,
+				metadataCache: metadataCache,
+				settings: this.settings,
+			}).compile();
+
+			const publishSuccessful = await publisher.publish(publishFile);
 
 			if (publishSuccessful) {
 				new Notice(`Successfully published note to your garden.`);
