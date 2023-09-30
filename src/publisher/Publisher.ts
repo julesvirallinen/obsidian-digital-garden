@@ -11,6 +11,10 @@ export interface MarkedForPublishing {
 	notes: TFile[];
 	images: string[];
 }
+
+export const IMAGE_PATH_BASE = "src/site/img/user/";
+export const NOTE_PATH_BASE = "src/site/notes/";
+
 /**
  * Prepares files to be published and publishes them to Github
  */
@@ -70,39 +74,19 @@ export default class Publisher {
 	}
 
 	async deleteNote(vaultFilePath: string) {
-		const path = `src/site/notes/${vaultFilePath}`;
+		const path = `${NOTE_PATH_BASE}${vaultFilePath}`;
 
 		return await this.delete(path);
 	}
 
 	async deleteImage(vaultFilePath: string) {
-		const path = `src/site/img/user/${encodeURI(vaultFilePath)}`;
+		const path = `${IMAGE_PATH_BASE}${vaultFilePath}`;
 
 		return await this.delete(path);
 	}
 
 	async delete(path: string): Promise<boolean> {
-		if (!this.settings.githubRepo) {
-			new Notice(
-				"Config error: You need to define a GitHub repo in the plugin settings",
-			);
-			throw {};
-		}
-
-		if (!this.settings.githubUserName) {
-			new Notice(
-				"Config error: You need to define a GitHub Username in the plugin settings",
-			);
-			throw {};
-		}
-
-		if (!this.settings.githubToken) {
-			new Notice(
-				"Config error: You need to define a GitHub Token in the plugin settings",
-			);
-			throw {};
-		}
-
+		this.validateSettings();
 		const octokit = new Octokit({ auth: this.settings.githubToken });
 
 		const payload = {
@@ -169,26 +153,7 @@ export default class Publisher {
 	}
 
 	async uploadToGithub(path: string, content: string) {
-		if (!this.settings.githubRepo) {
-			new Notice(
-				"Config error: You need to define a GitHub repo in the plugin settings",
-			);
-			throw {};
-		}
-
-		if (!this.settings.githubUserName) {
-			new Notice(
-				"Config error: You need to define a GitHub Username in the plugin settings",
-			);
-			throw {};
-		}
-
-		if (!this.settings.githubToken) {
-			new Notice(
-				"Config error: You need to define a GitHub Token in the plugin settings",
-			);
-			throw {};
-		}
+		this.validateSettings();
 
 		const octokit = new Octokit({ auth: this.settings.githubToken });
 
@@ -230,7 +195,7 @@ export default class Publisher {
 
 	async uploadText(filePath: string, content: string) {
 		content = Base64.encode(content);
-		const path = `src/site/notes/${filePath}`;
+		const path = `${NOTE_PATH_BASE}${filePath}`;
 		await this.uploadToGithub(path, content);
 	}
 
@@ -243,6 +208,29 @@ export default class Publisher {
 		for (let idx = 0; idx < assets.images.length; idx++) {
 			const image = assets.images[idx];
 			await this.uploadImage(image.path, image.content);
+		}
+	}
+
+	validateSettings() {
+		if (!this.settings.githubRepo) {
+			new Notice(
+				"Config error: You need to define a GitHub repo in the plugin settings",
+			);
+			throw {};
+		}
+
+		if (!this.settings.githubUserName) {
+			new Notice(
+				"Config error: You need to define a GitHub Username in the plugin settings",
+			);
+			throw {};
+		}
+
+		if (!this.settings.githubToken) {
+			new Notice(
+				"Config error: You need to define a GitHub Token in the plugin settings",
+			);
+			throw {};
 		}
 	}
 }
